@@ -23,4 +23,5 @@ chmod +x ai_chat
 
 nohup ./ai_chat > log.txt 2>&1 &
 
-![59936dfa573175f3f415234c459831df](https://github.com/user-attachments/assets/1298cfe5-22a4-488a-b582-d1b862e9e59b)
+![1743182072891](https://github.com/user-attachments/assets/089fc2da-5d5b-47ef-8072-c7acc490b3ac)
+
