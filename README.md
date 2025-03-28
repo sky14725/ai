@@ -7,7 +7,7 @@ ai聊天源码
 
 最后编译运行即可
 
-示例代码
+宝塔示例代码
 
 cd ai_chat
 
@@ -25,3 +25,4 @@ nohup ./ai_chat > log.txt 2>&1 &
 
 ![1743182072891](https://github.com/user-attachments/assets/089fc2da-5d5b-47ef-8072-c7acc490b3ac)
 
+![1743182157834](https://github.com/user-attachments/assets/62632317-f94b-49c3-9987-54f3c328c4c2)
