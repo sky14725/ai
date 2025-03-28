@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .dashboard { max-width: 600px; margin: 0 auto; }
+        .tab { display: inline-block; padding: 10px; cursor: pointer; border: 1px solid #ccc; }
+        .tab.active { background-color: #f0f0f0; }
+        .tab-content { display: none; margin-top: 10px; }
+        .tab-content.active { display: block; }
+        #random-image-api { margin: 10px 0; padding: 5px; }
+        #random-image-container img { max-width: 100%; margin: 5px; }
+        #search-image-input { width: 80%; padding: 10px; }
+        #search-image-btn { padding: 10px; }
+        #search-image-container img { max-width: 100%; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h2>AI聊天助手</h2>
+        <p><a href="/admin/logout">登出</a></p>
+
+        <!-- 选项卡 -->
+        <div>
+            <div class="tab" onclick="showTab('random-image')">随机图片</div>
+            <div class="tab" onclick="showTab('search-image')">搜索图片</div>
+        </div>
+
+        <!-- 随机图片 -->
+        <div id="random-image" class="tab-content">
+            <select id="random-image-api">
+                <option value="dmoe">Dmoe</option>
+                <option value="ixiaowai_api">iXiaowai API</option>
+                <option value="ixiaowai_mc">iXiaowai MC</option>
+                <option value="ixiaowai_gq">iXiaowai GQ</option>
+                <option value="btstu_fengjing">BTSTU 风景</option>
+                <option value="btstu_meizi">BTSTU 妹子</option>
+                <option value="btstu_suiji">BTSTU 随机</option>
+                <option value="btstu_dongman">BTSTU 动漫</option>
+                <option value="zichenacg">Zichen ACG</option>
+                <option value="paulzzh">Paulzzh</option>
+                <option value="r10086">R10086</option>
+                <option value="lolicon">Lolicon</option>
+                <option value="loliapi">LoliAPI</option>
+                <option value="seovx">Seovx</option>
+                <option value="xjh">XJH</option>
+                <option value="mtyqx">MTYQX</option>
+                <option value="alcy">Alcy</option>
+                <option value="asxe">Asxe</option>
+                <option value="horosama">Horosama</option>
+                <option value="paugram">Paugram</option>
+                <option value="tomys">Tomys</option>
+            </select>
+            <button onclick="getRandomImage()">获取随机图片</button>
+            <div id="random-image-container"></div>
+        </div>
+
+        <!-- 搜索图片 -->
+        <div id="search-image" class="tab-content">
+            <input type="text" id="search-image-input" placeholder="输入搜索关键词...">
+            <button id="search-image-btn" onclick="searchImage()">搜索</button>
+            <div id="search-image-container"></div>
+        </div>
+
+        <!-- 模型管理 -->
+        <h3>管理模型</h3>
+        <form action="/admin/add-model" method="POST">
+            <input type="text" name="model" placeholder="模型名称">
+            <button type="submit">添加模型</button>
+        </form>
+        <form action="/admin/remove-model" method="POST">
+            <input type="text" name="model" placeholder="模型名称">
+            <button type="submit">删除模型</button>
+        </form>
+
+        <!-- API 管理 -->
+        <h3>管理 API</h3>
+        <form action="/admin/add-api" method="POST">
+            <input type="text" name="api" placeholder="API 密钥">
+            <button type="submit">添加 API</button>
+        </form>
+        <form action="/admin/remove-api" method="POST">
+            <input type="text" name="api" placeholder="API 密钥">
+            <button type="submit">删除 API</button>
+        </form>
+    </div>
+
+    <script>
+        // 选项卡切换
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // 默认显示随机图片选项卡
+        showTab('random-image');
+
+        // 获取随机图片
+        async function getRandomImage() {
+            const api = document.getElementById("random-image-api").value;
+            const response = await fetch("/api/random-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ api })
+            });
+            const data = await response.json();
+            const container = document.getElementById("random-image-container");
+            container.innerHTML = `<img src="${data.image_url}" alt="Random Image" onclick="downloadImage('${data.image_url}')">`;
+        }
+
+        // 搜索图片
+        async function searchImage() {
+            const query = document.getElementById("search-image-input").value.trim();
+            if (!query) return;
+
+            const response = await fetch("/api/search-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query })
+            });
+            const data = await response.json();
+            const container = document.getElementById("search-image-container");
+            container.innerHTML = "";
+            data.images.forEach(url => {
+                container.innerHTML += `<img src="${url}" alt="Search Result" onclick="downloadImage('${url}')">`;
+            });
+        }
+
+        // 下载图片到 AList
+        async function downloadImage(url) {
+            const response = await fetch("/api/download-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url })
+            });
+            const data = await response.json();
+            alert(data.message + "\nPath: " + data.path);
+        }
+    </script>
+</body>
+</html>
