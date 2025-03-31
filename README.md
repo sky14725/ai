@@ -15,7 +15,7 @@ ai聊天源码
 
 宝塔示例代码
 
-cd ai_chat
+cd /www/wwwroot/ai_chat
 
 go mod init ai_chat
 
@@ -25,9 +25,7 @@ GOOS=linux GOARCH=amd64 go build -o ai_chat
 
 cd /www/wwwroot/ai_chat
 
-chmod +x ai_chat
 
-nohup ./ai_chat > log.txt 2>&1 &
 
 ![1743182072891](https://github.com/user-attachments/assets/089fc2da-5d5b-47ef-8072-c7acc490b3ac)
 
