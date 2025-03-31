@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 聊天</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .user-message {
+            background-color: #e6f7ff;
+            margin-left: 20%;
+            margin-right: 5%;
+        }
+        .bot-message {
+            background-color: #f5f5f5;
+            margin-right: 20%;
+            margin-left: 5%;
+        }
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background-color: #40a9ff;
+        }
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .image-search-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .image-item {
+            position: relative;
+        }
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .image-item .actions {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .image-item .actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .pagination button {
+            margin: 0 5px;
+        }
+        .random-image-container {
+            margin-top: 20px;
+        }
+        .api-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .api-item {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .api-item.selected {
+            background-color: #1890ff;
+            color: white;
+        }
+        .api-item.disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .progress {
+            height: 100%;
+            background-color: #1890ff;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>AI 聊天</h2>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-container">
+            <select id="modelSelect">
+                <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 (70B)</option>
+                <option value="deepseek-r1-distill-llama-8b">DeepSeek R1 (8B)</option>
+                <option value="deepseek-v3">DeepSeek V3</option>
+            </select>
+            <textarea id="messageInput" rows="3" placeholder="输入你的消息..."></textarea>
+            <button id="sendButton" onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+
+    <div class="image-search-container">
+        <h2>图片搜索</h2>
+        <div class="input-container">
+            <select id="engineSelect">
+                <option value="baidu">Baidu</option>
+                <option value="sogou">Sogou</option>
+            </select>
+            <input type="text" id="imageSearchInput" placeholder="输入搜索关键词..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <button onclick="searchImages(true)">搜索</button>
+        </div>
+        <div class="image-grid" id="imageGrid"></div>
+        <div class="pagination" id="pagination">
+            <button id="loadMoreButton" onclick="searchImages(false)" style="display: none;">继续加载</button>
+        </div>
+
+        <h3>随机图片</h3>
+        <div class="random-image-container">
+            <div class="api-list" id="apiList"></div>
+            <div class="progress-bar" id="progressBar"><div class="progress" id="progress"></div></div>
+            <button onclick="testAllAPIs()">测试所有 API</button>
+            <div class="image-grid" id="randomImageGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const modelSelect = document.getElementById('modelSelect');
+        const imageSearchInput = document.getElementById('imageSearchInput');
+        const engineSelect = document.getElementById('engineSelect');
+        const imageGrid = document.getElementById('imageGrid');
+        const pagination = document.getElementById('pagination');
+        const loadMoreButton = document.getElementById('loadMoreButton');
+        const apiList = document.getElementById('apiList');
+        const randomImageGrid = document.getElementById('randomImageGrid');
+        const progressBar = document.getElementById('progress');
+        let currentPage = 1;
+        let currentEngineIndex = 0;
+        let allImages = new Set();
+        let currentQuery = '';
+        let engines = Array.from(engineSelect.options).map(option => option.value);
+        let apiStatus = {};
+
+        // 初始化聊天历史
+        const history = JSON.parse('{{.HistoryJSON}}');
+        history.forEach(msg => {
+            appendMessage(msg.role === 'user' ? 'user' : 'bot', msg.content);
+        });
+
+        // 监听 Enter 键发送消息
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // 监听输入框变化，启用/禁用发送按钮
+        messageInput.addEventListener('input', () => {
+            sendButton.disabled = messageInput.value.trim() === '';
+        });
+
+        // 发送消息
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            appendMessage('user', message);
+            messageInput.value = '';
+            sendButton.disabled = true;
+
+            const model = modelSelect.value;
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message, model })
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let botMessageDiv = null;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = JSON.parse(line.slice(6));
+                        if (data.error) {
+                            appendMessage('bot', '错误: ' + data.error);
+                            break;
+                        }
+                        if (!botMessageDiv) {
+                            botMessageDiv = appendMessage('bot', data.content);
+                        } else {
+                            botMessageDiv.innerHTML += data.content;
+                        }
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                    }
+                }
+            }
+            sendButton.disabled = false;
+        }
+
+        // 添加消息到聊天框
+        function appendMessage(sender, content) {
+            const div = document.createElement('div');
+            div.className = `message ${sender === 'user' ? 'user-message' : 'bot-message'}`;
+            div.innerHTML = content;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return div;
+        }
+
+        // 搜索图片
+        async function searchImages(clear = false) {
+            const query = imageSearchInput.value.trim();
+            if (!query) return;
+
+            if (clear) {
+                currentPage = 1;
+                currentEngineIndex = engines.indexOf(engineSelect.value);
+                allImages.clear();
+                imageGrid.innerHTML = '';
+                currentQuery = query;
+            } else if (query !== currentQuery) {
+                // 如果查询关键词变了，重置
+                currentPage = 1;
+                currentEngineIndex = engines.indexOf(engineSelect.value);
+                allImages.clear();
+                imageGrid.innerHTML = '';
+                currentQuery = query;
+            }
+
+            imageGrid.innerHTML += '<div>加载中...</div>';
+            let hasMore = false;
+            let newImages = [];
+
+            while (newImages.length === 0 && currentEngineIndex < engines.length) {
+                const engine = engines[currentEngineIndex];
+                const response = await fetch('/api/search-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, page: currentPage, engine })
+                });
+                const data = await response.json();
+
+                newImages = data.images.filter(url => !allImages.has(url));
+                hasMore = data.hasMore;
+
+                if (newImages.length === 0 && !hasMore) {
+                    currentEngineIndex++;
+                    currentPage = 1; // 重置页面，从新引擎的第一页开始
+                    continue;
+                }
+                break;
+            }
+
+            imageGrid.innerHTML = Array.from(allImages).map(url => `
+                <div class="image-item">
+                    <img src="${url}">
+                    <div class="actions">
+                        <button onclick="downloadImage('${url}')">保存到AList</button>
+                        <button onclick="downloadToClient('${url}')">下载</button>
+                    </div>
+                </div>
+            `).join('');
+
+            newImages.forEach(url => allImages.add(url));
+            newImages.forEach(url => {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.innerHTML = `
+                    <img src="${url}">
+                    <div class="actions">
+                        <button onclick="downloadImage('${url}')">保存到AList</button>
+                        <button onclick="downloadToClient('${url}')">下载</button>
+                    </div>
+                `;
+                imageGrid.appendChild(div);
+            });
+
+            loadMoreButton.style.display = currentEngineIndex < engines.length ? 'inline-block' : 'none';
+            if (currentEngineIndex >= engines.length) {
+                imageGrid.innerHTML += '<div>没有更多图片</div>';
+            }
+
+            currentPage++;
+        }
+
+        // 保存到 AList
+        async function downloadImage(url) {
+            const response = await fetch('/api/download-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await response.json();
+            alert(data.message + '\n路径: ' + data.path);
+        }
+
+        // 下载到客户端
+        function downloadToClient(url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = url.split('/').pop() || 'image.jpg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 初始化随机图片 API 列表
+        async function initAPIList() {
+            const response = await fetch('/api/random-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api: '', count: 1, isTest: true })
+            });
+            const data = await response.json();
+
+            data.images.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `api-item ${item.status === 'failed' ? 'disabled' : ''}`;
+                div.innerText = item.api;
+                div.onclick = () => {
+                    if (item.status === 'failed') return;
+                    document.querySelectorAll('.api-item').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                    currentAPI = item.api;
+                    fetchRandomImage();
+                };
+                apiList.appendChild(div);
+                apiStatus[item.api] = item.status;
+            });
+        }
+
+        // 获取随机图片
+        async function fetchRandomImage() {
+            if (!currentAPI) return;
+            randomImageGrid.innerHTML = '加载中...';
+            const response = await fetch('/api/random-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api: currentAPI, count: 1, isTest: false })
+            });
+            const data = await response.json();
+
+            randomImageGrid.innerHTML = '';
+            data.images.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.innerHTML = `
+                    <img src="${item.image_url}">
+                    <div class="actions">
+                        <button onclick="downloadImage('${item.image_url}')">保存到AList</button>
+                        <button onclick="downloadToClient('${item.image_url}')">下载</button>
+                    </div>
+                `;
+                randomImageGrid.appendChild(div);
+            });
+        }
+
+        // 测试所有 API
+        async function testAllAPIs() {
+            document.querySelectorAll('.api-item').forEach(el => {
+                el.classList.remove('disabled');
+                el.classList.remove('selected');
+            });
+            randomImageGrid.innerHTML = '';
+            currentAPI = '';
+
+            const response = await fetch('/api/random-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api: '', count: 1, isTest: true })
+            });
+            const data = await response.json();
+
+            const total = data.images.length;
+            let completed = 0;
+
+            data.images.forEach(item => {
+                const apiItem = Array.from(apiList.children).find(el => el.innerText === item.api);
+                apiStatus[item.api] = item.status;
+                if (item.status === 'failed') {
+                    apiItem.classList.add('disabled');
+                }
+                completed++;
+                progressBar.style.width = `${(completed / total) * 100}%`;
+            });
+        }
+
+        // 初始化
+        initAPIList();
+    </script>
+</body>
+</html>
