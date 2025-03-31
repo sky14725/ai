@@ -3,6 +3,12 @@ ai聊天源码
 
 使用时先下载所有文件，需要更改主体文件中的密钥和alist的保存路径等
 
+创建 templates/ 目录
+
+ 将 index.html 另存为 templates/index.html
+ 将 admin.html 另存为 templates/admin.html
+ 将 admin_login.html 另存为 templates/admin_login.html
+
 下载后需要初始化并更新 Go 模块
 
 最后编译运行即可
